@@ -47,8 +47,8 @@ def chat_completion():
         return jsonify({'error': 'Only streaming responses are implemented at the moment'}), 400
 
     model = request.json['model']
-    if model == "gpt-35-turbo":
-        model = "gpt-3.5-turbo"
+    if model == "gpt-3.5-turbo":
+        model = "gpt-35-turbo"
     messages = request.json['messages']
     stream = request.json['stream']
     api_version = request.args.get('api_version', default='2023-05-15', type=str)
