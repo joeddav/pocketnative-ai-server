@@ -10,6 +10,8 @@ python = "^3.8"
 openai = "^1.6.0"
 Flask = "^3.0.0"
 gunicorn = "^21.2.0"
+pydub = "^0.25.1"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

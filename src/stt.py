@@ -1,12 +1,13 @@
 from openai import OpenAI, APIError
-from werkzeug.datastructures import FileStorage
 import os
 import tempfile
+from pydub import AudioSegment
 
 DEFAULT_PROMPT = """\
-This is a transcript of an English speaker trying to learn Russian. It may have \
-ошипки, but only in the русский part. The user may switch between English and \
-Russian."""
+This is a transcript of an English speaker trying to learn Russian (or some \
+other language). It may have ошипки, but only in the русский part. The user may \
+switch between English and Russian.\
+"""
 
 DEFAULT_USER_EXAMPLES = [
     "Привет! Как ты сегодня делаешь? Я хочу идти в кино сегодня вечером. Ты свободен?",
@@ -21,8 +22,7 @@ DEFAULT_USER_EXAMPLES = [
 ]
 
 
-
-def transcribe(file: FileStorage, temperature=0.2, prompt=None, user_examples=None) -> str:
+def transcribe(file, temperature=0.2, prompt=None, user_examples=None) -> str:
     if prompt is None:
         prompt = DEFAULT_PROMPT
     if user_examples is None:
@@ -37,8 +37,16 @@ def transcribe(file: FileStorage, temperature=0.2, prompt=None, user_examples=No
     temp_filepath += "-" + file.filename
     file.save(temp_filepath)
 
+    # Convert the audio file to webm
+    audio = AudioSegment.from_file(temp_filepath)
+    webm_filepath = temp_filepath + ".webm"
+    audio.export(webm_filepath, format="webm")
+
+    print("filename:")
+    print(webm_filepath)
+
     try:
-        with open(temp_filepath, 'rb') as f:
+        with open(webm_filepath, 'rb') as f:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1", 
                 file=f,
@@ -46,7 +54,8 @@ def transcribe(file: FileStorage, temperature=0.2, prompt=None, user_examples=No
                 prompt=full_prompt, 
             )
     finally:
-        # Remove the temporary file
+        # Remove the temporary files
         os.remove(temp_filepath)
+        os.remove(webm_filepath)
 
     return transcript.text
