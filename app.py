@@ -53,17 +53,27 @@ def chat_completion():
     stream = request.json['stream']
     api_version = request.args.get('api_version', default='2023-05-15', type=str)
 
-    from openai import AzureOpenAI
-    client = AzureOpenAI(azure_deployment=model, api_version=api_version)
+    from src.chat import StatefulAssistant
 
-    stream = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        stream=stream,
+    assistant = StatefulAssistant(
+        name="Andrea",
+        instructions=[
+            "Always keep messages concise"
+        ]
     )
 
+    stream = assistant.chat(messages, like_api=True)
+
+    # from openai import AzureOpenAI
+    # client = AzureOpenAI(azure_deployment=model, api_version=api_version)
+
+    # stream = client.chat.completions.create(
+    #     model=model,
+    #     messages=messages,
+    #     stream=stream,
+    # )
+
     def generate_bytes():
-        import json
         for chunk in stream:
             yield f"data: {chunk.model_dump_json()}\n\n"
         yield "data: [DONE]\n\n"
