@@ -17,12 +17,14 @@ MODEL_MAXLEN = {
 class ChatGPT:
     """ A very simple wrapper around OpenAI's ChatGPT API. Makes it easy to create custom messages & chat. """
     
-    def __init__(self, model="gpt-3.5-turbo", completion_hparams=None, api_key=None):
+    def __init__(self, model="gpt-3.5-turbo", completion_hparams=None, api_key=None, assistant_name=None, user_name=None):
         if api_key is not None:
             openai.api_key = api_key
         self.model = model
         self.completion_hparams = completion_hparams or {}
         self.history = []
+        self.assistant_name = assistant_name
+        self.user_name = user_name
         self._messages = []
         self._system = "You are a helpful assistant."
         self._tok = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -62,11 +64,17 @@ class ChatGPT:
 
     def user(self, message):
         """ Add a user message to the conversation """
-        self._messages.append({"role": "user", "content": message})
+        message_data = {"role": "user", "content": message}
+        if self.user_name is not None:
+            message_data["name"] = self.user_name
+        self._messages.append(message_data)
 
     def assistant(self, message):
         """ Add an assistant message to the conversation """
-        self._messages.append({"role": "assistant", "content": message})
+        message_data = {"role": "assistant", "content": message}
+        if self.assistant_name is not None:
+            message_data["name"] = self.assistant_name
+        self._messages.append(message_data)
 
     def reset(self):
         """ Reset the conversation (does not reset the system message) """

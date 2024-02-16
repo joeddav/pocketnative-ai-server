@@ -35,6 +35,18 @@ def speech_to_text():
     return jsonify({'text': text})
 
 
+
+
+from src.chat import StatefulAssistant
+
+assistant = StatefulAssistant(
+    name="Andrea",
+    instructions=[
+        "Always keep messages concise",
+        "The user is named Joe",
+    ],
+)
+
 @app.route('/chat/completions', methods=['POST'])
 def chat_completion():
     if 'model' not in request.json:
@@ -53,25 +65,9 @@ def chat_completion():
     stream = request.json['stream']
     api_version = request.args.get('api_version', default='2023-05-15', type=str)
 
-    from src.chat import StatefulAssistant
-
-    assistant = StatefulAssistant(
-        name="Andrea",
-        instructions=[
-            "Always keep messages concise"
-        ]
-    )
+    assistant.model = model
 
     stream = assistant.chat(messages, like_api=True)
-
-    # from openai import AzureOpenAI
-    # client = AzureOpenAI(azure_deployment=model, api_version=api_version)
-
-    # stream = client.chat.completions.create(
-    #     model=model,
-    #     messages=messages,
-    #     stream=stream,
-    # )
 
     def generate_bytes():
         for chunk in stream:
